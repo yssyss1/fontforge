@@ -17630,50 +17630,13 @@ static bool PyFFParse_genericGlyphChange(PyObject *args, PyObject *keywds,
 	PyErr_Format(PyExc_TypeError, "Unexpected value for hCounterType: %s\n (Try: 'uniform', 'nonUniform', 'retain', or 'scale')", hcountertype );
 	return false;
     }
-
-    /* Vertical counter info */
-    if ( strcasecmp(vCounterType,"scaled")==0 ) {
-	if ( vCounterScale<=0 ) {
-	    PyErr_Format(PyExc_TypeError, "Unexpected (or unspecified) value for vCounterScale: %g.", vCounterScale );
-	    return false;
-	}
-	genchange->vcounter_scale = vCounterScale;
-	genchange->vcounter_add   = vCounterAdd;
-	genchange->use_vert_mapping = false;
-    } else if ( strcasecmp(vCounterType,"mapped")==0 ) {
-	int cnt,i;
-	genchange->use_vert_mapping = true;
-	if ( vScale<=0 ) {
-	    PyErr_Format(PyExc_TypeError, "Unexpected (or unspecified) value for vScale: %g.", vScale );
-	    return false;
-	}
-	genchange->v_scale = vScale;
-	if ( vMap==NULL || !PySequence_Check(vMap) || PyUnicode_Check(vMap)) {
-	    PyErr_Format(PyExc_TypeError, "vMap should be a tuple (or some other sequence type)." );
-	    return false;
-	}
-	cnt = PySequence_Size(vMap);
-	genchange->m.cnt = cnt;
-	genchange->m.maps = malloc(cnt*sizeof(struct position_maps));
-	for ( i=0; i<cnt; ++i ) {
-	    PyObject *subTuple = PySequence_GetItem(vMap,i);
-	    if ( subTuple==NULL || !PySequence_Check(subTuple) || PyUnicode_Check(subTuple) || PySequence_Size(subTuple)!=3 ) {
-		PyErr_Format(PyExc_TypeError, "vMap should be a tuple of 3-tuples." );
-		free(genchange->m.maps);
-		return false;
-	    }
-	    if ( !PyArg_ParseTuple(subTuple,"ddd",
-		    &genchange->m.maps[i].current,
-		    &genchange->m.maps[i].desired,
-		    &genchange->m.maps[i].cur_width) ) {
-		free(genchange->m.maps);
-		return false;
-	    }
-	}
-    } else {
-	PyErr_Format(PyExc_TypeError, "Unexpected value for vCounterType: %s\n (Try: 'scaled', or 'mapped')", vCounterType );
-	return false;
-    }
+    genchange->use_vert_mapping = true;
+    genchange->v_scale = 1.0;
+    genchange->m.cnt = 1;
+    genchange->m.maps = malloc(sizeof(struct position_maps));
+    genchange->m.maps[0].current = 0;
+    genchange->m.maps[0].desired = -1;
+    genchange->m.maps[0].cur_width = 0;
     return true;
 }
 
